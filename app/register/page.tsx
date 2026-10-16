@@ -2,7 +2,7 @@
 
 import { useSearchParams, useRouter } from "next/navigation";
 import { useState, Suspense } from "react";
-import { createClient } from "../../client";
+import { createClient } from "../client";
 
 function RegisterContent() {
   const router = useRouter();
