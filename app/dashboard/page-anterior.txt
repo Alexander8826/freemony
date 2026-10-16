@@ -1,0 +1,71 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { createClient } from "../client";
+
+export default function Dashboard() {
+  const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function checkSession() {
+      const supabase = createClient();
+      const { data } = await supabase.auth.getUser();
+
+      if (!data.user) {
+        router.replace("/");
+        return;
+      }
+
+      setEmail(data.user.email ?? "");
+      setLoading(false);
+    }
+
+    checkSession();
+  }, [router]);
+
+  async function handleLogout() {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    router.replace("/");
+  }
+
+  if (loading) {
+    return (
+      <main className="min-h-screen bg-[#07111f] p-10 text-white">
+        Verificando tu sesión...
+      </main>
+    );
+  }
+
+  return (
+    <main className="min-h-screen bg-[#07111f] p-6 text-white">
+      <div className="mx-auto max-w-4xl py-12">
+        <h1 className="text-4xl font-bold">
+          Bienvenido a <span className="text-emerald-400">Freemony</span>
+        </h1>
+
+        <p className="mt-4 text-slate-400">
+          Has iniciado sesión con: {email}
+        </p>
+
+        <div className="mt-10 rounded-2xl border border-white/10 bg-[#0b1727] p-8">
+          <p className="text-slate-400">Saldo de demostración</p>
+          <p className="mt-3 text-4xl font-bold">RD$ 0.00</p>
+          <p className="mt-3 text-sm text-slate-500">
+            Este saldo es ilustrativo y no representa dinero real.
+          </p>
+        </div>
+
+        <button
+          onClick={handleLogout}
+          className="mt-8 rounded-xl bg-emerald-400 px-6 py-3 font-bold text-slate-950"
+        >
+          Cerrar sesión
+        </button>
+      </div>
+    </main>
+  );
+}
