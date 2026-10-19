@@ -40,13 +40,25 @@ type WithdrawalRequest = {
   created_at: string;
 };
 
-// Componente de Calculadora de Inversión (15% diario)
+// Componente de Calculadora de Inversión con Niveles y 15% diario base
 function InvestmentCalculator() {
-  const [amount, setAmount] = useState<number>(10000);
-  const [days, setDays] = useState<number>(30);
+  const levels = [
+    { id: "level1", name: "Nivel 1 (Bronce)", minAmount: 1000, rate: 0.15, maxDays: 30 },
+    { id: "level2", name: "Nivel 2 (Plata)", minAmount: 5000, rate: 0.18, maxDays: 45 },
+    { id: "level3", name: "Nivel 3 (Oro)", minAmount: 15000, rate: 0.20, maxDays: 60 },
+    { id: "level4", name: "Nivel VIP (Platinium)", minAmount: 50000, rate: 0.25, maxDays: 90 },
+  ];
 
-  const dailyRate = 0.15; // 15% diario
-  const estimatedProfit = amount * dailyRate * days;
+  const [selectedLevel, setSelectedLevel] = useState(levels[0]);
+  const [amount, setAmount] = useState<number>(levels[0].minAmount);
+  const [days, setDays] = useState<number>(10);
+
+  const handleSelectLevel = (level: typeof levels[0]) => {
+    setSelectedLevel(level);
+    setAmount(level.minAmount);
+  };
+
+  const estimatedProfit = amount * selectedLevel.rate * days;
   const totalReturn = amount + estimatedProfit;
 
   const formatCalcAmount = (val: number) =>
@@ -57,21 +69,42 @@ function InvestmentCalculator() {
 
   return (
     <div className="bg-[#0b1727] p-6 rounded-2xl border border-white/10 shadow-xl text-white my-6">
-      <h3 className="text-xl font-bold mb-2 text-emerald-400">Calculadora de Inversión</h3>
+      <h3 className="text-xl font-bold mb-2 text-emerald-400">Niveles de Inversión</h3>
       <p className="text-sm text-slate-400 mb-6">
-        Simula tus ganancias estimadas en base al capital invertido en Freemony.
+        Selecciona un nivel de inversión para simular tus ganancias diarias.
       </p>
+
+      {/* Tarjetas de Selección de Niveles */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+        {levels.map((lvl) => (
+          <button
+            key={lvl.id}
+            type="button"
+            onClick={() => handleSelectLevel(lvl)}
+            className={`p-4 rounded-xl border text-left transition-all ${
+              selectedLevel.id === lvl.id
+                ? "border-emerald-400 bg-emerald-400/10 text-white font-bold"
+                : "border-white/10 bg-[#07111f] text-slate-400 hover:border-white/30"
+            }`}
+          >
+            <p className="text-xs text-emerald-400 font-semibold">{lvl.name}</p>
+            <p className="text-base font-bold mt-1 text-white">RD$ {lvl.minAmount.toLocaleString("es-DO")}</p>
+            <p className="text-xs text-slate-400 mt-1">Rendimiento: {(lvl.rate * 100)}% diario</p>
+          </button>
+        ))}
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-4">
           <div>
             <label className="block text-sm text-slate-300 mb-1">
-              Cantidad a invertir: <span className="font-bold text-emerald-400">RD$ {amount.toLocaleString("es-DO")}</span>
+              Cantidad a invertir (Mín. RD$ {selectedLevel.minAmount.toLocaleString("es-DO"}):{" "}
+              <span className="font-bold text-emerald-400">RD$ {amount.toLocaleString("es-DO")}</span>
             </label>
             <input
               type="range"
-              min="1000"
-              max="500000"
+              min={selectedLevel.minAmount}
+              max={selectedLevel.minAmount * 10}
               step="1000"
               value={amount}
               onChange={(e) => setAmount(Number(e.target.value))}
@@ -86,7 +119,7 @@ function InvestmentCalculator() {
             <input
               type="range"
               min="1"
-              max="180"
+              max={selectedLevel.maxDays}
               step="1"
               value={days}
               onChange={(e) => setDays(Number(e.target.value))}
@@ -98,12 +131,16 @@ function InvestmentCalculator() {
         <div className="bg-[#07111f] p-5 rounded-xl border border-white/10 flex flex-col justify-between">
           <div className="space-y-3">
             <div className="flex justify-between text-sm">
+              <span className="text-slate-400">Nivel seleccionado:</span>
+              <span className="font-semibold text-emerald-400">{selectedLevel.name}</span>
+            </div>
+            <div className="flex justify-between text-sm">
               <span className="text-slate-400">Inversión inicial:</span>
               <span className="font-semibold">RD$ {formatCalcAmount(amount)}</span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-slate-400">Rendimiento diario (15%):</span>
-              <span className="font-semibold text-emerald-400">RD$ {formatCalcAmount(amount * dailyRate)} / día</span>
+              <span className="text-slate-400">Rendimiento diario ({(selectedLevel.rate * 100)}%):</span>
+              <span className="font-semibold text-emerald-400">RD$ {formatCalcAmount(amount * selectedLevel.rate)} / día</span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-slate-400">Ganancia estimada ({days} días):</span>
@@ -117,7 +154,7 @@ function InvestmentCalculator() {
           </div>
 
           <p className="text-[10px] text-slate-500 mt-4 text-center">
-            * Cálculo basado en un rendimiento del 15% diario sobre la inversión.
+            * Cálculo basado en el rendimiento del {(selectedLevel.rate * 100)}% diario según el nivel de inversión.
           </p>
         </div>
       </div>
@@ -464,6 +501,7 @@ export default function Dashboard() {
     }
   }
 
+  // Validación de Retiro Semanal y Comisión de Plataforma del 20%
   async function handleWithdrawalSubmit(e: React.FormEvent) {
     e.preventDefault();
     const amount = Number(withdrawalAmount);
@@ -478,10 +516,28 @@ export default function Dashboard() {
       return;
     }
 
+    // Regla de Retiro Semanal (mínimo 7 días desde la última solicitud)
+    if (withdrawals.length > 0) {
+      const lastWithdrawalDate = new Date(withdrawals[0].created_at);
+      const now = new Date();
+      const diffInDays = (now.getTime() - lastWithdrawalDate.getTime()) / (1000 * 3600 * 24);
+
+      if (diffInDays < 7) {
+        const remainingDays = Math.ceil(7 - diffInDays);
+        alert(
+          `Los retiros son semanales. Debes esperar ${remainingDays} día(s) más para realizar una nueva solicitud.`
+        );
+        return;
+      }
+    }
+
     if (!withdrawalDetails.trim()) {
       alert("Por favor ingresa los datos de tu cuenta o método de cobro.");
       return;
     }
+
+    const fee = amount * 0.20; // 20% para la plataforma
+    const netAmount = amount - fee; // Lo que recibe el usuario
 
     setSubmittingWithdrawal(true);
 
@@ -494,7 +550,7 @@ export default function Dashboard() {
           user_id: userId,
           amount: amount,
           method: withdrawalMethod,
-          details: withdrawalDetails.trim(),
+          details: `Neto a recibir: RD$ ${netAmount.toFixed(2)} (Comisión plataforma 20%: RD$ ${fee.toFixed(2)}) - ${withdrawalDetails.trim()}`,
           status: "pending",
         })
         .select()
@@ -505,7 +561,9 @@ export default function Dashboard() {
         return;
       }
 
-      alert("Solicitud de retiro enviada correctamente. Quedará en estado pendiente de revisión.");
+      alert(
+        `Solicitud enviada correctamente.\nMonto bruto: RD$ ${amount.toFixed(2)}\nComisión plataforma (20%): RD$ ${fee.toFixed(2)}\nMonto neto a recibir: RD$ ${netAmount.toFixed(2)}`
+      );
       setWithdrawalAmount("");
       setWithdrawalDetails("");
 
@@ -735,7 +793,7 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* Calculadora de Inversión al 15% diario */}
+            {/* Calculadora de Inversión con Niveles */}
             <InvestmentCalculator />
 
             <div className="mt-6 rounded-2xl border border-white/10 bg-[#0b1727] p-6">
@@ -1004,13 +1062,17 @@ export default function Dashboard() {
         {active === "Retiros" && (
           <div className="space-y-6">
             <div className="rounded-2xl border border-white/10 bg-[#0b1727] p-6">
-              <h3 className="text-lg font-bold">Solicitar un retiro</h3>
+              <h3 className="text-lg font-bold">Solicitar un retiro semanal</h3>
               <p className="mt-1 text-sm text-slate-400">
                 Saldo disponible para retirar:{" "}
                 <span className="font-bold text-emerald-400">
                   RD$ {formatAmount(balance)}
                 </span>
               </p>
+
+              <div className="mt-3 rounded-xl border border-amber-400/20 bg-amber-400/10 p-3 text-xs text-amber-300">
+                📌 **Reglas de retiro:** Se permite 1 solicitud de retiro por semana. Se aplica una tarifa del **20% de comisión para la plataforma** sobre el monto total.
+              </div>
 
               <form onSubmit={handleWithdrawalSubmit} className="mt-6 space-y-4">
                 <div>
@@ -1029,6 +1091,25 @@ export default function Dashboard() {
                     className="w-full rounded-xl border border-white/10 bg-[#07111f] p-3 text-white"
                   />
                 </div>
+
+                {/* Desglose visual en tiempo real del 20% de comisión */}
+                {Number(withdrawalAmount) > 0 && (
+                  <div className="rounded-xl border border-white/10 bg-[#07111f] p-4 text-sm space-y-2">
+                    <div className="flex justify-between text-slate-400">
+                      <span>Monto solicitado:</span>
+                      <span>RD$ {formatAmount(Number(withdrawalAmount))}</span>
+                    </div>
+                    <div className="flex justify-between text-red-400">
+                      <span>Comisión de plataforma (20%):</span>
+                      <span>− RD$ {formatAmount(Number(withdrawalAmount) * 0.20)}</span>
+                    </div>
+                    <hr className="border-white/10 my-1" />
+                    <div className="flex justify-between font-bold text-emerald-400">
+                      <span>Monto final a recibir:</span>
+                      <span>RD$ {formatAmount(Number(withdrawalAmount) * 0.80)}</span>
+                    </div>
+                  </div>
+                )}
 
                 <div>
                   <label className="mb-2 block text-sm text-slate-300">
