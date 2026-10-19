@@ -40,7 +40,7 @@ type WithdrawalRequest = {
   created_at: string;
 };
 
-// Componente de Calculadora de Inversión con Niveles y 15% diario base
+// Componente de Calculadora de Inversión con Niveles
 function InvestmentCalculator() {
   const levels = [
     { id: "level1", name: "Nivel 1 (Bronce)", minAmount: 1000, rate: 0.15, maxDays: 30 },
@@ -74,7 +74,6 @@ function InvestmentCalculator() {
         Selecciona un nivel de inversión para simular tus ganancias diarias.
       </p>
 
-      {/* Tarjetas de Selección de Niveles */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
         {levels.map((lvl) => (
           <button
@@ -183,27 +182,23 @@ export default function Dashboard() {
   const [userId, setUserId] = useState("");
   const [createdAt, setCreatedAt] = useState("");
 
-  // Estados para Mi Perfil
   const [fullName, setFullName] = useState("");
   const [updatingProfile, setUpdatingProfile] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [updatingPassword, setUpdatingPassword] = useState(false);
 
-  // Estados para Referidos
   const [referralsCount, setReferralsCount] = useState(0);
   const [referralEarnings, setReferralEarnings] = useState(0);
   const [referredUsers, setReferredUsers] = useState<ReferredUser[]>([]);
   const [copiedLink, setCopiedLink] = useState(false);
 
-  // Estados para Retiros
   const [withdrawals, setWithdrawals] = useState<WithdrawalRequest[]>([]);
   const [withdrawalAmount, setWithdrawalAmount] = useState("");
   const [withdrawalMethod, setWithdrawalMethod] = useState("bank_transfer");
   const [withdrawalDetails, setWithdrawalDetails] = useState("");
   const [submittingWithdrawal, setSubmittingWithdrawal] = useState(false);
 
-  // CÁLCULOS PARA "MI SALDO"
   const pendingWithdrawalsAmount = withdrawals
     .filter((w) => w.status === "pending")
     .reduce((acc, curr) => acc + Number(curr.amount), 0);
@@ -516,7 +511,6 @@ export default function Dashboard() {
       return;
     }
 
-    // Regla de Retiro Semanal (mínimo 7 días desde la última solicitud)
     if (withdrawals.length > 0) {
       const lastWithdrawalDate = new Date(withdrawals[0].created_at);
       const now = new Date();
@@ -536,8 +530,8 @@ export default function Dashboard() {
       return;
     }
 
-    const fee = amount * 0.20; // 20% para la plataforma
-    const netAmount = amount - fee; // Lo que recibe el usuario
+    const fee = amount * 0.20;
+    const netAmount = amount - fee;
 
     setSubmittingWithdrawal(true);
 
@@ -793,7 +787,6 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* Calculadora de Inversión con Niveles */}
             <InvestmentCalculator />
 
             <div className="mt-6 rounded-2xl border border-white/10 bg-[#0b1727] p-6">
@@ -1071,7 +1064,7 @@ export default function Dashboard() {
               </p>
 
               <div className="mt-3 rounded-xl border border-amber-400/20 bg-amber-400/10 p-3 text-xs text-amber-300">
-                📌 **Reglas de retiro:** Se permite 1 solicitud de retiro por semana. Se aplica una tarifa del **20% de comisión para la plataforma** sobre el monto total.
+                📌 <strong>Reglas de retiro:</strong> Se permite 1 solicitud de retiro por semana. Se aplica una tarifa del <strong>20% de comisión para la plataforma</strong> sobre el monto total.
               </div>
 
               <form onSubmit={handleWithdrawalSubmit} className="mt-6 space-y-4">
@@ -1092,7 +1085,6 @@ export default function Dashboard() {
                   />
                 </div>
 
-                {/* Desglose visual en tiempo real del 20% de comisión */}
                 {Number(withdrawalAmount) > 0 && (
                   <div className="rounded-xl border border-white/10 bg-[#07111f] p-4 text-sm space-y-2">
                     <div className="flex justify-between text-slate-400">
