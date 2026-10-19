@@ -97,7 +97,7 @@ function InvestmentCalculator() {
         <div className="space-y-4">
           <div>
             <label className="block text-sm text-slate-300 mb-1">
-              Cantidad a invertir (Mín. RD$ {selectedLevel.minAmount.toLocaleString("es-DO"}):{" "}
+              Cantidad a invertir (Mín. RD$ {selectedLevel.minAmount.toLocaleString("es-DO")}):{" "}
               <span className="font-bold text-emerald-400">RD$ {amount.toLocaleString("es-DO")}</span>
             </label>
             <input
