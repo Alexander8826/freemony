@@ -496,7 +496,6 @@ export default function Dashboard() {
     }
   }
 
-  // Validación de Retiro Semanal y Comisión de Plataforma del 20%
   async function handleWithdrawalSubmit(e: React.FormEvent) {
     e.preventDefault();
     const amount = Number(withdrawalAmount);
