@@ -40,6 +40,87 @@ type WithdrawalRequest = {
   created_at: string;
 };
 
+// Componente de Calculadora de Inversión
+function InvestmentCalculator() {
+  const [amount, setAmount] = useState<number>(10000);
+  const [months, setMonths] = useState<number>(6);
+
+  const monthlyRate = 0.02; // 2% mensual estimado
+  const estimatedProfit = amount * Math.pow(1 + monthlyRate, months) - amount;
+  const totalReturn = amount + estimatedProfit;
+
+  const formatCalcAmount = (val: number) =>
+    val.toLocaleString("es-DO", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+
+  return (
+    <div className="bg-[#0b1727] p-6 rounded-2xl border border-white/10 shadow-xl text-white my-6">
+      <h3 className="text-xl font-bold mb-2 text-emerald-400">Calculadora de Inversión</h3>
+      <p className="text-sm text-slate-400 mb-6">
+        Simula tus ganancias estimadas en base al capital invertido en Freemony.
+      </p>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm text-slate-300 mb-1">
+              Cantidad a invertir: <span className="font-bold text-emerald-400">RD$ {amount.toLocaleString("es-DO")}</span>
+            </label>
+            <input
+              type="range"
+              min="1000"
+              max="500000"
+              step="1000"
+              value={amount}
+              onChange={(e) => setAmount(Number(e.target.value))}
+              className="w-full accent-emerald-500 cursor-pointer"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm text-slate-300 mb-1">
+              Plazo (meses): <span className="font-bold text-emerald-400">{months} meses</span>
+            </label>
+            <input
+              type="range"
+              min="1"
+              max="24"
+              step="1"
+              value={months}
+              onChange={(e) => setMonths(Number(e.target.value))}
+              className="w-full accent-emerald-500 cursor-pointer"
+            />
+          </div>
+        </div>
+
+        <div className="bg-[#07111f] p-5 rounded-xl border border-white/10 flex flex-col justify-between">
+          <div className="space-y-3">
+            <div className="flex justify-between text-sm">
+              <span className="text-slate-400">Inversión inicial:</span>
+              <span className="font-semibold">RD$ {formatCalcAmount(amount)}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-slate-400">Ganancia estimada:</span>
+              <span className="font-semibold text-emerald-400">+ RD$ {formatCalcAmount(estimatedProfit)}</span>
+            </div>
+            <hr className="border-white/10 my-2" />
+            <div className="flex justify-between text-base font-bold">
+              <span>Total al finalizar:</span>
+              <span className="text-emerald-400">RD$ {formatCalcAmount(totalReturn)}</span>
+            </div>
+          </div>
+
+          <p className="text-[10px] text-slate-500 mt-4 text-center">
+            * Cálculo basado en una tasa estimada de rendimiento referencial.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function Dashboard() {
   const router = useRouter();
 
@@ -650,6 +731,9 @@ export default function Dashboard() {
               </div>
             </div>
 
+            {/* Integración de la Calculadora de Inversión aquí */}
+            <InvestmentCalculator />
+
             <div className="mt-6 rounded-2xl border border-white/10 bg-[#0b1727] p-6">
               <h3 className="text-lg font-bold">Actividad reciente</h3>
 
@@ -684,7 +768,6 @@ export default function Dashboard() {
 
         {active === "Mi saldo" && (
           <div className="space-y-6">
-            {/* Tarjetas de Desglose de Saldo */}
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
               <div className="rounded-2xl border border-emerald-400/20 bg-[#0b1727] p-6">
                 <p className="text-sm text-slate-400">Saldo disponible</p>
@@ -717,7 +800,6 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* Resumen de Flujo Financiero */}
             <div className="rounded-2xl border border-white/10 bg-[#0b1727] p-6">
               <h3 className="text-lg font-bold">Resumen de ingresos y gastos</h3>
               <p className="mt-1 text-sm text-slate-400">
@@ -917,7 +999,6 @@ export default function Dashboard() {
 
         {active === "Retiros" && (
           <div className="space-y-6">
-            {/* Formulario de Retiro */}
             <div className="rounded-2xl border border-white/10 bg-[#0b1727] p-6">
               <h3 className="text-lg font-bold">Solicitar un retiro</h3>
               <p className="mt-1 text-sm text-slate-400">
@@ -940,7 +1021,7 @@ export default function Dashboard() {
                     required
                     value={withdrawalAmount}
                     onChange={(e) => setWithdrawalAmount(e.target.value)}
-                    placeholder="Ej. 1000.00"
+                    placeholder="0.00"
                     className="w-full rounded-xl border border-white/10 bg-[#07111f] p-3 text-white"
                   />
                 </div>
@@ -955,84 +1036,55 @@ export default function Dashboard() {
                     className="w-full rounded-xl border border-white/10 bg-[#07111f] p-3 text-white"
                   >
                     <option value="bank_transfer">Transferencia bancaria</option>
-                    <option value="local_account">Pago Móvil / Cuenta Local</option>
-                    <option value="cash">Efectivo</option>
+                    <option value="crypto">Criptomonedas</option>
+                    <option value="cash">Efectivo / Otro</option>
                   </select>
                 </div>
 
                 <div>
                   <label className="mb-2 block text-sm text-slate-300">
-                    Datos de la cuenta o beneficiario
+                    Detalles de la cuenta (Banco, No. de cuenta, etc.)
                   </label>
                   <textarea
                     required
                     rows={3}
                     value={withdrawalDetails}
                     onChange={(e) => setWithdrawalDetails(e.target.value)}
-                    placeholder="Ej. Banco BHD, Cuenta Ahorros: 1234567890, Titular: Juan Pérez, Cédula: 001-0000000-0"
+                    placeholder="Ej. Banco Popular, Cuenta corriente: 123456789"
                     className="w-full rounded-xl border border-white/10 bg-[#07111f] p-3 text-white"
                   />
                 </div>
 
                 <button
                   type="submit"
-                  disabled={submittingWithdrawal || balance <= 0}
-                  className="w-full rounded-xl bg-emerald-400 px-4 py-3 font-bold text-slate-950 hover:bg-emerald-300 disabled:cursor-not-allowed disabled:opacity-50"
+                  disabled={submittingWithdrawal}
+                  className="w-full rounded-xl bg-emerald-400 px-4 py-3 font-bold text-slate-950 hover:bg-emerald-300 disabled:opacity-50"
                 >
-                  {submittingWithdrawal ? "Procesando..." : "Solicitar retiro"}
+                  {submittingWithdrawal ? "Enviando solicitud..." : "Solicitar retiro"}
                 </button>
               </form>
             </div>
 
-            {/* Historial de Retiros */}
+            {/* Listado de Retiros Anteriores */}
             <div className="rounded-2xl border border-white/10 bg-[#0b1727] p-6">
-              <h3 className="text-lg font-bold">Historial de solicitudes de retiro</h3>
-
+              <h3 className="text-lg font-bold mb-4">Mis solicitudes de retiro</h3>
               {withdrawals.length === 0 ? (
-                <div className="mt-5 rounded-xl border border-dashed border-white/10 p-6 text-center">
-                  <p className="text-slate-300">
-                    No tienes solicitudes de retiro registradas.
-                  </p>
-                </div>
+                <p className="text-sm text-slate-400">No has realizado solicitudes de retiro.</p>
               ) : (
-                <div className="mt-5 space-y-3">
-                  {withdrawals.map((item) => (
-                    <div
-                      key={item.id}
-                      className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-white/10 p-4"
-                    >
-                      <div className="min-w-0">
-                        <p className="font-medium text-white">
-                          {item.method === "bank_transfer"
-                            ? "Transferencia bancaria"
-                            : item.method === "local_account"
-                            ? "Pago Móvil / Cuenta Local"
-                            : "Efectivo"}
-                        </p>
-                        <p className="mt-1 text-xs text-slate-400">
-                          {new Date(item.created_at).toLocaleString("es-DO")}
-                        </p>
-                        <p className="mt-1 text-xs text-slate-500 break-all">
-                          {item.details}
-                        </p>
+                <div className="space-y-3">
+                  {withdrawals.map((w) => (
+                    <div key={w.id} className="border border-white/10 p-4 rounded-xl flex justify-between items-center flex-wrap gap-2">
+                      <div>
+                        <p className="font-bold text-emerald-400">RD$ {formatAmount(w.amount)}</p>
+                        <p className="text-xs text-slate-400">{w.details} ({w.method})</p>
+                        <p className="text-[10px] text-slate-500">{new Date(w.created_at).toLocaleString("es-DO")}</p>
                       </div>
-
-                      <div className="text-right">
-                        <p className="font-bold text-white">
-                          RD$ {formatAmount(item.amount)}
-                        </p>
-                        <span
-                          className={`inline-block mt-1 rounded-full px-3 py-1 text-xs font-semibold ${
-                            item.status === "completed"
-                              ? "bg-emerald-400/10 border border-emerald-400/20 text-emerald-300"
-                              : item.status === "rejected"
-                              ? "bg-red-400/10 border border-red-400/20 text-red-300"
-                              : "bg-amber-400/10 border border-amber-400/20 text-amber-300"
-                          }`}
-                        >
-                          {transactionStatus(item.status)}
-                        </span>
-                      </div>
+                      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                        w.status === "completed" ? "bg-emerald-500/20 text-emerald-300" :
+                        w.status === "rejected" ? "bg-red-500/20 text-red-300" : "bg-amber-500/20 text-amber-300"
+                      }`}>
+                        {w.status === "completed" ? "Completado" : w.status === "rejected" ? "Rechazado" : "Pendiente"}
+                      </span>
                     </div>
                   ))}
                 </div>
@@ -1043,82 +1095,38 @@ export default function Dashboard() {
 
         {active === "Referidos" && (
           <div className="space-y-6">
-            {/* Tarjetas de Resumen */}
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="rounded-2xl border border-white/10 bg-[#0b1727] p-6">
-                <p className="text-sm text-slate-400">Total de referidos</p>
-                <p className="mt-4 text-3xl font-bold">{referralsCount}</p>
-                <p className="mt-2 text-xs text-emerald-400">
-                  Usuarios registrados con tu enlace
-                </p>
-              </div>
-
-              <div className="rounded-2xl border border-white/10 bg-[#0b1727] p-6">
-                <p className="text-sm text-slate-400">Ganancias por referidos</p>
-                <p className="mt-4 text-3xl font-bold">
-                  RD$ {formatAmount(referralEarnings)}
-                </p>
-                <p className="mt-2 text-xs text-slate-400">
-                  Comisiones acumuladas
-                </p>
-              </div>
-            </div>
-
-            {/* Enlace de Invitación */}
             <div className="rounded-2xl border border-white/10 bg-[#0b1727] p-6">
-              <h3 className="text-lg font-bold">Tu enlace único de invitación</h3>
+              <h3 className="text-lg font-bold">Invita y gana</h3>
               <p className="mt-1 text-sm text-slate-400">
-                Comparte este enlace con tus amigos para acumular recompensas cuando se registren.
+                Comparte tu enlace personal de referido para invitar a otras personas a Freemony.
               </p>
 
-              <div className="mt-5 flex flex-col gap-3 sm:flex-row">
+              <div className="mt-4 flex gap-2">
                 <input
                   type="text"
                   readOnly
                   value={referralLink}
-                  className="w-full flex-1 rounded-xl border border-white/10 bg-[#07111f] p-3 text-sm text-emerald-300 font-mono"
+                  className="w-full rounded-xl border border-white/10 bg-[#07111f] p-3 text-sm text-slate-300"
                 />
                 <button
                   onClick={handleCopyReferralLink}
-                  className="shrink-0 rounded-xl bg-emerald-400 px-5 py-3 font-bold text-slate-950 hover:bg-emerald-300 transition"
+                  className="shrink-0 rounded-xl bg-emerald-400 px-5 py-3 font-bold text-slate-950 hover:bg-emerald-300"
                 >
-                  {copiedLink ? "¡Copiado!" : "Copiar enlace"}
+                  {copiedLink ? "¡Copiado!" : "Copiar"}
                 </button>
               </div>
             </div>
 
-            {/* Lista de Referidos */}
             <div className="rounded-2xl border border-white/10 bg-[#0b1727] p-6">
-              <h3 className="text-lg font-bold">Usuarios invitados</h3>
-
+              <h3 className="text-lg font-bold mb-4">Usuarios referidos ({referredUsers.length})</h3>
               {referredUsers.length === 0 ? (
-                <div className="mt-5 rounded-xl border border-dashed border-white/10 p-6 text-center">
-                  <p className="text-slate-300">
-                    Aún no tienes referidos registrados.
-                  </p>
-                  <p className="mt-2 text-sm text-slate-500">
-                    Comparte tu enlace de invitación para comenzar a sumar usuarios.
-                  </p>
-                </div>
+                <p className="text-sm text-slate-400">Aún no tienes usuarios registrados con tu link.</p>
               ) : (
-                <div className="mt-5 space-y-3">
-                  {referredUsers.map((user) => (
-                    <div
-                      key={user.id}
-                      className="flex items-center justify-between rounded-xl border border-white/10 p-4"
-                    >
-                      <div>
-                        <p className="font-medium text-white">
-                          {user.full_name || "Usuario registrado"}
-                        </p>
-                        <p className="mt-1 text-xs text-slate-400">
-                          Registrado el: {new Date(user.created_at).toLocaleDateString("es-DO")}
-                        </p>
-                      </div>
-
-                      <span className="rounded-full bg-emerald-400/10 border border-emerald-400/20 px-3 py-1 text-xs text-emerald-300">
-                        Activo
-                      </span>
+                <div className="space-y-3">
+                  {referredUsers.map((u) => (
+                    <div key={u.id} className="border border-white/10 p-4 rounded-xl flex justify-between items-center">
+                      <p className="font-medium">{u.full_name || "Usuario de Freemony"}</p>
+                      <p className="text-xs text-slate-400">{new Date(u.created_at).toLocaleDateString("es-DO")}</p>
                     </div>
                   ))}
                 </div>
@@ -1129,72 +1137,43 @@ export default function Dashboard() {
 
         {active === "Mi perfil" && (
           <div className="space-y-6">
-            {/* Detalles de la cuenta */}
-            <div className="rounded-2xl border border-white/10 bg-[#0b1727] p-6">
-              <h3 className="text-lg font-bold">Detalles de la cuenta</h3>
-              <p className="mt-1 text-sm text-slate-400">
-                Información general acerca de tu acceso en Freemony.
-              </p>
-
-              <div className="mt-5 grid gap-4 sm:grid-cols-2">
-                <div className="rounded-xl border border-white/10 bg-[#07111f] p-4">
-                  <p className="text-xs text-slate-400">Correo electrónico</p>
-                  <p className="mt-1 break-all font-medium text-white">{email}</p>
-                </div>
-
-                <div className="rounded-xl border border-white/10 bg-[#07111f] p-4">
-                  <p className="text-xs text-slate-400">Cuenta creada</p>
-                  <p className="mt-1 font-medium text-white">
-                    {createdAt ? new Date(createdAt).toLocaleString("es-DO") : "No disponible"}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Actualizar Datos Personales */}
             <div className="rounded-2xl border border-white/10 bg-[#0b1727] p-6">
               <h3 className="text-lg font-bold">Datos personales</h3>
-              <p className="mt-1 text-sm text-slate-400">
-                Actualiza tu nombre completo para personalizar tu experiencia.
-              </p>
-
-              <form onSubmit={handleUpdateProfile} className="mt-5 space-y-4">
+              <form onSubmit={handleUpdateProfile} className="mt-4 space-y-4">
                 <div>
-                  <label className="mb-2 block text-sm text-slate-300">
-                    Nombre completo
-                  </label>
+                  <label className="block text-sm text-slate-300 mb-2">Correo electrónico</label>
+                  <input
+                    type="text"
+                    disabled
+                    value={email}
+                    className="w-full rounded-xl border border-white/10 bg-[#07111f] p-3 text-slate-500 cursor-not-allowed"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm text-slate-300 mb-2">Nombre completo</label>
                   <input
                     type="text"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
-                    placeholder="Ej. Juan Pérez"
-                    maxLength={100}
+                    placeholder="Tu nombre completo"
                     className="w-full rounded-xl border border-white/10 bg-[#07111f] p-3 text-white"
                   />
                 </div>
-
                 <button
                   type="submit"
                   disabled={updatingProfile}
-                  className="rounded-xl bg-emerald-400 px-5 py-2.5 text-sm font-bold text-slate-950 hover:bg-emerald-300 disabled:opacity-50"
+                  className="rounded-xl bg-emerald-400 px-5 py-2.5 font-bold text-slate-950 hover:bg-emerald-300 disabled:opacity-50 text-sm"
                 >
-                  {updatingProfile ? "Guardando..." : "Guardar cambios"}
+                  {updatingProfile ? "Guardando..." : "Actualizar perfil"}
                 </button>
               </form>
             </div>
 
-            {/* Cambiar Contraseña */}
             <div className="rounded-2xl border border-white/10 bg-[#0b1727] p-6">
-              <h3 className="text-lg font-bold">Seguridad y contraseña</h3>
-              <p className="mt-1 text-sm text-slate-400">
-                Modifica tu contraseña de acceso a la plataforma.
-              </p>
-
-              <form onSubmit={handleChangePassword} className="mt-5 space-y-4">
+              <h3 className="text-lg font-bold">Cambiar contraseña</h3>
+              <form onSubmit={handleChangePassword} className="mt-4 space-y-4">
                 <div>
-                  <label className="mb-2 block text-sm text-slate-300">
-                    Nueva contraseña
-                  </label>
+                  <label className="block text-sm text-slate-300 mb-2">Nueva contraseña</label>
                   <input
                     type="password"
                     value={newPassword}
@@ -1203,24 +1182,20 @@ export default function Dashboard() {
                     className="w-full rounded-xl border border-white/10 bg-[#07111f] p-3 text-white"
                   />
                 </div>
-
                 <div>
-                  <label className="mb-2 block text-sm text-slate-300">
-                    Confirmar nueva contraseña
-                  </label>
+                  <label className="block text-sm text-slate-300 mb-2">Confirmar nueva contraseña</label>
                   <input
                     type="password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    placeholder="Repite la nueva contraseña"
+                    placeholder="Repite la contraseña"
                     className="w-full rounded-xl border border-white/10 bg-[#07111f] p-3 text-white"
                   />
                 </div>
-
                 <button
                   type="submit"
                   disabled={updatingPassword}
-                  className="rounded-xl border border-white/10 px-5 py-2.5 text-sm font-medium text-slate-200 hover:bg-white/5 disabled:opacity-50"
+                  className="rounded-xl border border-white/10 px-5 py-2.5 font-bold text-white hover:bg-white/5 disabled:opacity-50 text-sm"
                 >
                   {updatingPassword ? "Actualizando..." : "Actualizar contraseña"}
                 </button>
